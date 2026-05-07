@@ -111,16 +111,11 @@ public class PlayLog : MonoBehaviour
 
     private string ReadTextFile(string path)
     {
-        // Check if the log file exists before trying to read it
         if (!File.Exists(path))
         {
             return "File not found. Write data first.";
         }
 
-        // File provides some basic functions for reading and writing text files, 
-        // including reading the entire contents at once
-        // Other data formats or larger files may require more complex handling 
-        // (e.g., streaming, binary formats, etc.)
         return File.ReadAllText(path);
     }
 }
