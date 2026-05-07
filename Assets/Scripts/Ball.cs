@@ -7,19 +7,14 @@ using UnityEngine.SceneManagement;
 
 public class Ball : MonoBehaviour
 {
-    public float speed = 1.0f;
-
-    int x;
-    float y;
-
     public int magnitude = 1;
 
     Vector2 direction;
 
     public Rigidbody2D rb;
 
-    public GameObject Wall1;
-    public GameObject Wall2;
+    public GameObject OutZone1;
+    public GameObject OutZone2;
 
     public GameObject Edge1;
     public GameObject Edge2;
@@ -47,9 +42,10 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject == Wall1 || collision.gameObject == Wall2)
+        if (collision.gameObject == OutZone1 || collision.gameObject == OutZone2)
         {
-            
+            if (collision.gameObject == OutZone2) ScoreManager.score1 += 1;
+            if (collision.gameObject == OutZone1) ScoreManager.score2 += 1;
 
             SceneManager.LoadScene("Smilla");
         }
@@ -57,12 +53,7 @@ public class Ball : MonoBehaviour
         {
             direction.y *= -1;
         }
-
-
-        Debug.Log(direction);
-
         rb.AddForce(direction * magnitude, ForceMode2D.Force);
-
     }
 
 
