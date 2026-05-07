@@ -51,8 +51,8 @@ public class Ball : MonoBehaviour
     {
         if (collision.gameObject == OutZone1 || collision.gameObject == OutZone2)
         {
-            if (collision.gameObject == OutZone2) ScoreManager.instance.OneScore();
-            if (collision.gameObject == OutZone1) ScoreManager.instance.TwoScore();
+            if (collision.gameObject == OutZone2) ScoreManager.OneScore();
+            if (collision.gameObject == OutZone1) ScoreManager.TwoScore();
 
             transform.position = startBallPos;
             GameManager.instance.SetUpScene();
