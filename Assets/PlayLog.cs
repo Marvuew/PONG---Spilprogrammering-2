@@ -19,17 +19,9 @@ public class PlayLog : MonoBehaviour
 
     private float playSessionCount;
 
-    public void OnEnable()
-    {
-        GameManager.instance.OnPlaySessionEnded.AddListener(WritePlayLog);
-        GameManager.instance.OnPlaySessionStarted.AddListener(UpdatePlaySessionCount);
-
-    }
-
     public void OnDisable()
     {
         GameManager.instance.OnPlaySessionEnded.RemoveListener(WritePlayLog);
-        GameManager.instance.OnPlaySessionStarted.RemoveListener(UpdatePlaySessionCount);
     }
 
 
@@ -39,6 +31,11 @@ public class PlayLog : MonoBehaviour
         playSessionCountFilePath = Path.Combine(Application.persistentDataPath, playSessionCountFileName);
         playLogStatus = "Ready.";
         playSessionCountStatus = "Ready.";
+    }
+
+    private void Start()
+    {
+        GameManager.instance.OnPlaySessionEnded.AddListener(WritePlayLog);
     }
 
     /*private void OnGUI()
@@ -93,14 +90,20 @@ public class PlayLog : MonoBehaviour
         GUILayout.EndVertical();
     }*/
 
-    private void WritePlayLog()
+    public void WritePlayLog()
     {
         Directory.CreateDirectory(Application.persistentDataPath);
-        File.AppendAllText(playLogFilePath, $"{DateTime.Now:O} - Play session {playSessionCount} ended {_player1Score}-{_player2Score}. The ball was hit {ballHits} times. {Environment.NewLine}");
-        playLogStatus = $"Wrote to: {playLogFilePath}";
+
+        if (!File.Exists(playLogFilePath)) // If the file doesn't exist yet, create it and intialize it to 0
+        {
+            File.AppendAllText(playLogFilePath, "=== LOG CREATED ===" + Environment.NewLine);
+        }
+
+        File.AppendAllText(playLogFilePath, $"{DateTime.Now:O} - Play session {playSessionCount + 1} ended {GameManager.instance.playSessionScorePlayer1}-{GameManager.instance.playSessionScorePlayer2}. The ball was hit {GameManager.instance.ballHits} times. {Environment.NewLine}");
+        Debug.Log($"Wrote to: {playLogFilePath}");
     }
 
-    private void UpdatePlaySessionCount()
+    public void UpdatePlaySessionCount()
     {
         Debug.Log("Updating Play Session Count");
         Directory.CreateDirectory(Application.persistentDataPath); // Create a directory if it doesnt exits yet at unitys persistent data path.
@@ -114,6 +117,7 @@ public class PlayLog : MonoBehaviour
         playSessionCount = playSessionFile != string.Empty ? int.Parse(playSessionFile) : 0; // if the playsession file is empty, initialize the count to 0, otherwise parse the count from the file.
         File.WriteAllText(playSessionCountFilePath, string.Empty); // Clear the file before writing the new count to it.
         File.AppendAllText(playSessionCountFilePath, (playSessionCount + 1).ToString()); // Increment the cound and write it back to the file.
+        Debug.Log($"Wrote to: {playSessionCountFilePath}");
     }
 
     private string ReadTextFile(string path)

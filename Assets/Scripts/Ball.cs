@@ -21,6 +21,8 @@ public class Ball : MonoBehaviour
 
     int x;
 
+    public ScoreManager sm;
+
     Vector3 startBallPos;
     Vector2 left = new Vector2(-1, 0);
     Vector2 right = new Vector2(1, 0);
@@ -28,7 +30,8 @@ public class Ball : MonoBehaviour
 
     public List<GameObject> players = new List<GameObject>();
 
-    
+    public bool isFrozen = false;
+
     void Start()
     {
         initialDirections = new Vector2[2] { left, right };
@@ -49,26 +52,33 @@ public class Ball : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        Debug.Log("Collided with: " + collision.gameObject.name);
         if (collision.gameObject == OutZone1 || collision.gameObject == OutZone2)
         {
-            if (collision.gameObject == OutZone2) ScoreManager.OneScore();
-            if (collision.gameObject == OutZone1) ScoreManager.TwoScore();
+            Debug.Log("Ball hit an OutZone: " + collision.gameObject.name);
+            if (collision.gameObject == OutZone2) sm.OneScore();
+            if (collision.gameObject == OutZone1) sm.TwoScore();
 
             transform.position = startBallPos;
-            GameManager.instance.SetUpScene();
+            Debug.Log("Ball reset to start position: " + transform.position);
+            if (GameObject.FindGameObjectsWithTag("Player").Length != 0)
+            {
+                GameManager.instance.ResetPlayerPos();
+            }
             Push();
         }
         if (collision.gameObject == Edge1 || collision.gameObject == Edge2)
         {
             direction.y *= -1;
+            GameManager.instance.ballHits++;
         }
 
         if (players.Contains(collision.gameObject))
         {
             CalculateAngle(collision);
             direction.x *= -1;
+            GameManager.instance.ballHits++;
         }
-
         rb.linearVelocity = direction * magnitude;
     }
 
@@ -82,7 +92,4 @@ public class Ball : MonoBehaviour
         float bounceAngle = normalizedOffset * 30f; // Max bounce angle of 30 degrees
         direction = Quaternion.Euler(0, 0, bounceAngle) * direction;
     }
-
-
-
 }
