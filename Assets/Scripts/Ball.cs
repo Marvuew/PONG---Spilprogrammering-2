@@ -26,6 +26,8 @@ public class Ball : MonoBehaviour
     Vector2 right = new Vector2(1, 0);
     Vector2[] initialDirections;
 
+    public List<GameObject> players = new List<GameObject>();
+
     
     void Start()
     {
@@ -41,7 +43,7 @@ public class Ball : MonoBehaviour
         int randomIndex = Random.Range(0, initialDirections.Length);
         direction = initialDirections[randomIndex];
      
-        rb.AddForce(direction * magnitude, ForceMode2D.Force);
+        rb.linearVelocity = direction * magnitude;
 
     }
 
@@ -53,13 +55,32 @@ public class Ball : MonoBehaviour
             if (collision.gameObject == OutZone1) ScoreManager.instance.TwoScore();
 
             transform.position = startBallPos;
+            GameManager.instance.SetUpScene();
             Push();
         }
-        else if (collision.gameObject == Edge1 || collision.gameObject == Edge2)
+        if (collision.gameObject == Edge1 || collision.gameObject == Edge2)
         {
             direction.y *= -1;
         }
-        rb.AddForce(direction * magnitude, ForceMode2D.Force);
+
+        if (players.Contains(collision.gameObject))
+        {
+            CalculateAngle(collision);
+            direction.x *= -1;
+        }
+
+        rb.linearVelocity = direction * magnitude;
+    }
+
+    public void CalculateAngle(Collision2D collision)
+    {
+        Vector2 collisionPoint = collision.GetContact(0).point;
+        Vector2 paddleCenter = collision.collider.bounds.center;
+        float offset = collisionPoint.y - paddleCenter.y;
+        float maxOffset = collision.collider.bounds.extents.y;
+        float normalizedOffset = offset / maxOffset;
+        float bounceAngle = normalizedOffset * 30f; // Max bounce angle of 30 degrees
+        direction = Quaternion.Euler(0, 0, bounceAngle) * direction;
     }
 
 

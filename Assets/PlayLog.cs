@@ -19,10 +19,17 @@ public class PlayLog : MonoBehaviour
 
     private float playSessionCount;
 
-    private void OnEnable()
+    public void OnEnable()
     {
-        // GameManager.OnPlaySessionEnded += WritePlayLog;
-        // GameManager.OnPlaySessionStarted += UpdatePlaySessionCount;
+        GameManager.instance.OnPlaySessionEnded.AddListener(WritePlayLog);
+        GameManager.instance.OnPlaySessionStarted.AddListener(UpdatePlaySessionCount);
+
+    }
+
+    public void OnDisable()
+    {
+        GameManager.instance.OnPlaySessionEnded.RemoveListener(WritePlayLog);
+        GameManager.instance.OnPlaySessionStarted.RemoveListener(UpdatePlaySessionCount);
     }
 
 
@@ -34,7 +41,7 @@ public class PlayLog : MonoBehaviour
         playSessionCountStatus = "Ready.";
     }
 
-    private void OnGUI()
+    /*private void OnGUI()
     {
         // Simple GUI to demonstrate file logging functionality
         // I am using GUILayout for simplicity, but in a production application 
@@ -84,7 +91,7 @@ public class PlayLog : MonoBehaviour
         GUILayout.Label("Play Session Count Status:");
         GUILayout.TextArea(playSessionCountStatus, GUILayout.Height(60));
         GUILayout.EndVertical();
-    }
+    }*/
 
     private void WritePlayLog()
     {
