@@ -44,6 +44,9 @@ public class Ball : MonoBehaviour
     {
         if (collision.gameObject == OutZone1 || collision.gameObject == OutZone2)
         {
+            if (collision.gameObject == OutZone2) ScoreManager.score1 += 1;
+            if (collision.gameObject == OutZone1) ScoreManager.score2 += 1;
+
             SceneManager.LoadScene("Smilla");
         }
         else if (collision.gameObject == Edge1 || collision.gameObject == Edge2)
