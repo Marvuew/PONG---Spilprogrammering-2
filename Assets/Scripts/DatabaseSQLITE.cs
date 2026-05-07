@@ -11,10 +11,21 @@ public class DatabaseSQLITE : MonoBehaviour
     private string lastStatus = "Waiting for input.";
     private string recentRows = string.Empty;
 
- 
+    public void Awake()
+    {
+        databasePath = Path.Combine(Application.persistentDataPath, databaseFileName);
+        Debug.Log(databasePath);
+    }
+
+    public void Start()
+    {
+
+    }
+    private string ConnectionString => $"URI=file:{databasePath}";
     public void CreateDB()
     {
-        using (SqliteConnection connection = new SqliteConnection(databaseFileName))
+        Directory.CreateDirectory(Application.persistentDataPath);
+        using (SqliteConnection connection = new SqliteConnection(ConnectionString))
         {
             connection.Open();
 
@@ -29,7 +40,7 @@ public class DatabaseSQLITE : MonoBehaviour
     }
     public void CreateMatchHistory(int playerLeftScore, int playerRightScore)
     {
-        using (SqliteConnection connection = new SqliteConnection(databaseFileName))
+        using (SqliteConnection connection = new SqliteConnection(ConnectionString))
         {
             connection.Open();
 
