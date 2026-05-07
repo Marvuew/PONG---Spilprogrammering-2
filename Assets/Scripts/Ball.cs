@@ -19,35 +19,41 @@ public class Ball : MonoBehaviour
     public GameObject Edge1;
     public GameObject Edge2;
 
+    int x;
+
+    Vector3 startBallPos;
+    Vector2 left = new Vector2(-1, 0);
+    Vector2 right = new Vector2(1, 0);
+    Vector2[] initialDirections;
 
     
     void Start()
     {
+        initialDirections = new Vector2[2] { left, right };
         rb = GetComponent<Rigidbody2D>();
+        startBallPos = transform.position;
 
-        /*x = Random.Range(-1, 1);
-        y = Random.Range(-1, 1);
-
-        while (x == 0) x = Random.Range(-1, 1);
-        while (y == 0) y = Random.Range(-1, 1);
-
-        direction = new Vector2(x, y);*/
-        direction = new Vector2(-1, 0);
-        rb.AddForce(direction * magnitude, ForceMode2D.Force);
-
-
-        
+        Push();
     }
 
+    public void Push()
+    {
+        int randomIndex = Random.Range(0, initialDirections.Length);
+        direction = initialDirections[randomIndex];
+     
+        rb.AddForce(direction * magnitude, ForceMode2D.Force);
+
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject == OutZone1 || collision.gameObject == OutZone2)
         {
-            if (collision.gameObject == OutZone2) ScoreManager.score1 += 1;
-            if (collision.gameObject == OutZone1) ScoreManager.score2 += 1;
+            if (collision.gameObject == OutZone2) ScoreManager.instance.OneScore();
+            if (collision.gameObject == OutZone1) ScoreManager.instance.TwoScore();
 
-            SceneManager.LoadScene("Smilla");
+            transform.position = startBallPos;
+            Push();
         }
         else if (collision.gameObject == Edge1 || collision.gameObject == Edge2)
         {
