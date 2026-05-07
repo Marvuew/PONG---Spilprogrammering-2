@@ -1,7 +1,9 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VectorGraphics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Ball : MonoBehaviour
 {
@@ -35,7 +37,7 @@ public class Ball : MonoBehaviour
         while (y == 0) y = Random.Range(-1, 1);
 
         direction = new Vector2(x, y);*/
-        direction = new Vector2(-1, 1);
+        direction = new Vector2(-1, 0);
         rb.AddForce(direction * magnitude, ForceMode2D.Force);
 
 
@@ -47,8 +49,9 @@ public class Ball : MonoBehaviour
     {
         if (collision.gameObject == Wall1 || collision.gameObject == Wall2)
         {
-            direction.x *= -1;
-            Debug.Log("hit");
+            
+
+            SceneManager.LoadScene("Smilla");
         }
         else if (collision.gameObject == Edge1 || collision.gameObject == Edge2)
         {
