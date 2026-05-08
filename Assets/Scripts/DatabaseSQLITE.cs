@@ -8,13 +8,10 @@ public class DatabaseSQLITE : MonoBehaviour
 {
     private const string databaseFileName = "PongDatabase.db";
     private string databasePath;
-    private string lastStatus = "Waiting for input.";
-    private string recentRows = string.Empty;
 
     public void Awake()
     {
         databasePath = Path.Combine(Application.persistentDataPath, databaseFileName);
-        Debug.Log(databasePath);
     }
 
     public void Start()
