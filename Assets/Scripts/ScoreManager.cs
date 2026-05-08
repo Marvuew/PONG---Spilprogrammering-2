@@ -3,28 +3,47 @@ using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
-    private static ScoreManager instance;
     
     public TextMeshProUGUI Score1;
     public TextMeshProUGUI Score2;
 
-    public static int score1 = 0;
-    public static int score2 = 0;
+    public int score1 = 0;
+    public int score2 = 0;
 
-    private void Awake()
+    float maxPoints = 10;
+
+    public void OneScore()
     {
-        if (instance == null) instance = this;
-        if (!instance == this) Destroy(gameObject);
-
-        DontDestroyOnLoad(gameObject);
+        score1++;
+        Score1.text = $"{score1}";
+        if (score1 >= maxPoints)
+        {
+            GameManager.instance.TransferScore(score1, score2);
+            GameManager.instance.OnPlaySessionEnded.Invoke();
+            return;
+        }
     }
 
-    private void Update()
+    public void TwoScore()
     {
+        score2++;
+        Score2.text = $"{score2}";
+        if (score2 >= maxPoints)
+        {
+            GameManager.instance.TransferScore(score1, score2);
+            GameManager.instance.OnPlaySessionEnded.Invoke();
+            return;
+        }
+    }
+
+    public void Reset()
+    {
+        score1 = 0;
+        score2 = 0;
         Score1.text = $"{score1}";
         Score2.text = $"{score2}";
-        
     }
+
 
 
 }

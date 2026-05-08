@@ -16,7 +16,7 @@ public class DatabaseSQLITE : MonoBehaviour
 
     public void Start()
     {
-
+        CreateDB();
     }
     private string ConnectionString => $"URI=file:{databasePath}";
     public void CreateDB()
