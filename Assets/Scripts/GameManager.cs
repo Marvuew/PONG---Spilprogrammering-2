@@ -1,6 +1,8 @@
+using Unity.Netcode;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Events;
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     public static GameManager instance;
     public GameObject PlayerPrefab;
@@ -25,10 +27,19 @@ public class GameManager : MonoBehaviour
     public Transform player1SpawnPos;
     public Transform player2SpawnPos;
 
-    GameObject player1;
-    GameObject player2;
-    GameObject ball;
+    [SerializeField] GameObject ball;
+
+    public GameObject player1;
+    public GameObject player2;
     GameObject scoreBoard;
+
+    [Header("Game elements")]
+    public GameObject OutZone1;
+    public GameObject OutZone2;
+
+    public GameObject Edge1;
+    public GameObject Edge2;
+
 
     public int playSessionScorePlayer1;
     public int playSessionScorePlayer2;
@@ -49,42 +60,35 @@ public class GameManager : MonoBehaviour
         OnPlaySessionEnded.RemoveListener(EndGameOfPong);
         OnPlaySessionStarted.RemoveListener(ResetScene);
     }
-    void Start()
-    {
-        SetupScene();
-    }
 
-   
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    //void Start()
+    //{
+    //    //SetupScene();
+    //}
 
-    public void SetupScene()
-    {
-        player1 = Instantiate(PlayerPrefab, player1SpawnPos.position, Quaternion.identity);
-        player1.GetComponent<PlayerController>().isPlayer1 = true;
-        player1.GetComponent<PlayerController>().isOwner = true;
 
-        player2 = Instantiate(PlayerPrefab, player2SpawnPos.position, Quaternion.identity);
-        player2.GetComponent<PlayerController>().isOwner = true;
+    //public void SetupScene()
+    //{
+    //    player1 = Instantiate(PlayerPrefab, player1SpawnPos.position, Quaternion.identity);
+    //    player1.GetComponent<PlayerController>().isPlayer1 = true;
+    //    player1.GetComponent<PlayerController>().isOwner = true;
 
-        ball = GameObject.FindWithTag("Ball");
-        ball.GetComponent<Ball>().players.Add(player1);
-        ball.GetComponent<Ball>().players.Add(player2);
-        var logscript = GetComponent<PlayLog>();
-        logscript.UpdatePlaySessionCount();
-    }
+    //    player2 = Instantiate(PlayerPrefab, player2SpawnPos.position, Quaternion.identity);
+    //    player2.GetComponent<PlayerController>().isOwner = true;
+
+    //    ball = GameObject.FindWithTag("Ball");
+    //    ball.GetComponent<Ball>().players.Add(player1);
+    //    ball.GetComponent<Ball>().players.Add(player2);
+    //    var logscript = GetComponent<PlayLog>();
+    //    logscript.UpdatePlaySessionCount();
+    //}
 
     public void ResetScene()
     {
-        Destroy(player1);
-        Destroy(player2);
+        ResetPlayerPos();
         scoreBoard = GameObject.FindWithTag("ScoreBoard");
         scoreBoard.GetComponent<ScoreManager>().Reset();
-        SetupScene();
         ballHits = 0;
         ResumeGame();
     }
@@ -98,8 +102,7 @@ public class GameManager : MonoBehaviour
     public void EndGameOfPong()
     {
         Debug.Log("Game Ended! Player 1 Score: " + playSessionScorePlayer1 + " Player 2 Score: " + playSessionScorePlayer2);
-        Destroy(player1);
-        Destroy(player2);
+        ResetPlayerPos();
         PauseGame();
         var SQLite = GetComponent<DatabaseSQLITE>();
         SQLite.CreateMatchHistory(playSessionScorePlayer1, playSessionScorePlayer2);
@@ -131,5 +134,34 @@ public class GameManager : MonoBehaviour
     void ResumeGame()
     {
         Time.timeScale = 1;
+    }
+
+    /////////////////////////////////////
+    /// NETWORK PART
+    /////////////////////////////////////
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+        }
+    }
+
+    private void OnClientConnected(ulong clientId)
+    {
+        Debug.Log("Client connected: " + clientId);
+
+        // Optional: only spawn when a non-host client joins
+        if (clientId != NetworkManager.Singleton.LocalClientId)
+        {
+            SpawnBall();
+        }
+    }
+
+    void SpawnBall()
+    {
+        GameObject ballObject = Instantiate(ball, Vector3.zero, Quaternion.identity);
+        ballObject.GetComponent<NetworkObject>().Spawn(true);
     }
 }
