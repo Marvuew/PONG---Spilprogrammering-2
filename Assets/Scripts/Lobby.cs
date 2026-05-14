@@ -67,12 +67,9 @@ public class Lobby : MonoBehaviour
 
     IEnumerator HostShutdownRoutine()
     {
-        Debug.Log("SSSSS");
         disconnectCanvas.SetActive(true);
-        Debug.Log("ddddd");
 
         yield return new WaitForSeconds(5f);
-        Debug.Log("Canvas active BEFORE shutdown: " + canvas.activeSelf);
 
         // Update UI FIRST
         disconnectCanvas.SetActive(false);
@@ -81,11 +78,7 @@ public class Lobby : MonoBehaviour
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
 
-        Debug.Log("Before shutdown. IsListening: " + NetworkManager.Singleton.IsListening);
-
         NetworkManager.Singleton.Shutdown();
-
-        Debug.Log("After shutdown. IsListening: " + NetworkManager.Singleton.IsListening);
     }
 
     void OnDisable()

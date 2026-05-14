@@ -138,7 +138,6 @@ public class Ball : NetworkBehaviour
 
     public void CalculateAngle(Collision2D collision)
     {
-
         Debug.Log("Calculation");
         Vector2 collisionPoint = collision.GetContact(0).point;
         Vector2 paddleCenter = collision.collider.bounds.center;
