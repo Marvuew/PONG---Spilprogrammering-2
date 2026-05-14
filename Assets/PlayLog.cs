@@ -21,7 +21,10 @@ public class PlayLog : MonoBehaviour
 
     public void OnDisable()
     {
-        GameManager.instance.OnPlaySessionEnded.RemoveListener(WritePlayLog);
+        if (GameManager.instance != null && GameManager.instance.OnPlaySessionEnded != null)
+        {
+            GameManager.instance.OnPlaySessionEnded.RemoveListener(WritePlayLog);
+        }
     }
 
 

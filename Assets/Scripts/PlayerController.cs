@@ -1,5 +1,3 @@
-using System.Globalization;
-using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,7 +19,7 @@ public class PlayerController : NetworkBehaviour
         isOwner = networkObject.IsOwner;
 
         // Set position and save object by client id.
-        if(networkObject.OwnerClientId == 0)
+        if (networkObject.OwnerClientId == 0)
         {
             gameObject.transform.position = GameManager.instance.player1SpawnPos.transform.position;
             GameManager.instance.player1 = gameObject;
@@ -41,31 +39,16 @@ public class PlayerController : NetworkBehaviour
         }
 
         float dy = 0.0f;
-        if (!isPlayer1)
+        if (InputSystem.GetDevice<Keyboard>().wKey.isPressed || InputSystem.GetDevice<Keyboard>().upArrowKey.isPressed)
         {
-            if (InputSystem.GetDevice<Keyboard>().wKey.isPressed)
-            {
-                dy += 1;
-            }
-
-            if (InputSystem.GetDevice<Keyboard>().sKey.isPressed)
-            {
-                dy -= 1;
-            }
+            dy += 1;
         }
-        else
+
+        if (InputSystem.GetDevice<Keyboard>().sKey.isPressed || InputSystem.GetDevice<Keyboard>().downArrowKey.isPressed)
         {
-            if (InputSystem.GetDevice<Keyboard>().upArrowKey.isPressed)
-            {
-                dy += 1;
-            }
-
-            if (InputSystem.GetDevice<Keyboard>().downArrowKey.isPressed)
-            {
-                dy -= 1;
-            }
+            dy -= 1;
         }
-      
+
 
         rb.linearVelocityY = dy * moveSpeed * Time.fixedDeltaTime;
     }

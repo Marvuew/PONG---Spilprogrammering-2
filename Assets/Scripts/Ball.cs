@@ -5,11 +5,13 @@ using System.Linq;
 using Unity.Netcode;
 using Unity.VectorGraphics;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.SocialPlatforms.Impl;
 
 public class Ball : NetworkBehaviour
 {
+
     public int magnitude = 1;
 
     Vector2 direction;
@@ -37,6 +39,7 @@ public class Ball : NetworkBehaviour
 
     void Start()
     {
+        GameManager.OnFinished += BallDestroy;
         rb = GetComponent<Rigidbody2D>();
 
         if (!IsServer) return;
@@ -46,6 +49,11 @@ public class Ball : NetworkBehaviour
         startBallPos = transform.position;
 
         Push();
+    }
+
+    void BallDestroy()
+    {
+        Destroy(gameObject);
     }
 
     void FixedUpdate()
@@ -102,10 +110,7 @@ public class Ball : NetworkBehaviour
 
             Debug.Log("Ball reset to start position: " + transform.position);
 
-            if (GameObject.FindGameObjectsWithTag("Player").Length != 0)
-            {
-                GameManager.instance.ResetPlayerPos();
-            }
+            GameManager.instance.ResetPlayerPos();
 
             Push();
             return;
@@ -121,8 +126,8 @@ public class Ball : NetworkBehaviour
         // Players
         if (collision.gameObject.CompareTag("Player"))
         {
-            CalculateAngle(collision);      // THEN apply angle
-            direction.x *= -1;              // flip first
+            CalculateAngle(collision);      
+            direction.x *= -1;              
             GameManager.instance.ballHits++;
         }
 
@@ -130,11 +135,6 @@ public class Ball : NetworkBehaviour
         rb.linearVelocity = direction.normalized * magnitude;
     }
 
-    [Rpc(SendTo.Server)]
-    void ReportCollisionRpc(NetworkObjectReference victimRef)
-    {
-         
-    }
 
     public void CalculateAngle(Collision2D collision)
     {
@@ -147,7 +147,6 @@ public class Ball : NetworkBehaviour
         float normalizedOffset = offset / maxOffset;
         float bounceAngle = normalizedOffset * 30f; // Max bounce angle of 30 degrees
         direction = new Vector2(direction.x, normalizedOffset).normalized;
-
         Debug.Log("Calculation 2" + direction);
     }
 }

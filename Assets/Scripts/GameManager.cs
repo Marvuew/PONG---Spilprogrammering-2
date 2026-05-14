@@ -1,7 +1,12 @@
+using System;
+using System.Collections;
+using TMPro;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 public class GameManager : NetworkBehaviour
 {
     public static GameManager instance;
@@ -10,6 +15,7 @@ public class GameManager : NetworkBehaviour
 
     public UnityEvent OnPlaySessionEnded = new UnityEvent();
     public UnityEvent OnPlaySessionStarted = new UnityEvent();
+    public static event Action OnFinished;
 
     public void Awake()
     {
@@ -40,12 +46,21 @@ public class GameManager : NetworkBehaviour
     public GameObject Edge1;
     public GameObject Edge2;
 
+    public GameObject logScreen;
+    public GameObject lobbyCanvas;
+    public GameObject disconnectCanvas;
+
+    [Header("Log elements")]
+    public Transform playLogContainer;
+    public GameObject playLogTextPrefab;
+    public GameObject Score;
 
     public int playSessionScorePlayer1;
     public int playSessionScorePlayer2;
     public int ballHits;
 
-    public GameObject LOBBY_UI;
+    public GameObject ScoreManager;
+    private GameObject scoreInstance;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
@@ -61,28 +76,13 @@ public class GameManager : NetworkBehaviour
         OnPlaySessionStarted.RemoveListener(ResetScene);
     }
 
+    public void SpawnScoreManager()
+    {
+        if (!NetworkManager.Singleton.IsServer) return;
 
-    //void Start()
-    //{
-    //    //SetupScene();
-    //}
-
-
-    //public void SetupScene()
-    //{
-    //    player1 = Instantiate(PlayerPrefab, player1SpawnPos.position, Quaternion.identity);
-    //    player1.GetComponent<PlayerController>().isPlayer1 = true;
-    //    player1.GetComponent<PlayerController>().isOwner = true;
-
-    //    player2 = Instantiate(PlayerPrefab, player2SpawnPos.position, Quaternion.identity);
-    //    player2.GetComponent<PlayerController>().isOwner = true;
-
-    //    ball = GameObject.FindWithTag("Ball");
-    //    ball.GetComponent<Ball>().players.Add(player1);
-    //    ball.GetComponent<Ball>().players.Add(player2);
-    //    var logscript = GetComponent<PlayLog>();
-    //    logscript.UpdatePlaySessionCount();
-    //}
+        scoreInstance = Instantiate(ScoreManager);
+        scoreInstance.GetComponent<NetworkObject>().Spawn();
+    }
 
     public void ResetScene()
     {
@@ -95,24 +95,39 @@ public class GameManager : NetworkBehaviour
 
     public void ResetPlayerPos()
     {
+
+        player1.transform.position = player1SpawnPos.position;
+        player2.transform.position = player2SpawnPos.position;
+        ResetPlayerPosClientRpc();
+    }
+
+    [ClientRpc]
+    public void ResetPlayerPosClientRpc()
+    {
         player1.transform.position = player1SpawnPos.position;
         player2.transform.position = player2SpawnPos.position;
     }
 
     public void EndGameOfPong()
     {
+        OnFinished.Invoke();
         Debug.Log("Game Ended! Player 1 Score: " + playSessionScorePlayer1 + " Player 2 Score: " + playSessionScorePlayer2);
         ResetPlayerPos();
-        PauseGame();
+
+        if (!IsServer) return;
+
         var SQLite = GetComponent<DatabaseSQLITE>();
         SQLite.CreateMatchHistory(playSessionScorePlayer1, playSessionScorePlayer2);
-        LOBBY_UI.SetActive(true);
+
+        ReturnToMenuClientRpc();
+        Lobby.Instance.ShutDownHost();
     }
 
-    public void StartGame()
+    [ClientRpc]
+    void ReturnToMenuClientRpc()
     {
-        LOBBY_UI.SetActive(false);
-        OnPlaySessionStarted.Invoke();
+        if (IsServer) return;
+        Lobby.Instance.ShutDownClient();
     }
 
     public void QuitGame()
@@ -136,6 +151,42 @@ public class GameManager : NetworkBehaviour
         Time.timeScale = 1;
     }
 
+    public void ToggleLogOn()
+    {
+        ClearLog();
+        logScreen.SetActive(true);
+        Score.SetActive(false);
+        UpdatePlayLogPanel();
+    }
+
+    public void ToggleLogOff()
+    {
+        ClearLog();
+        logScreen.SetActive(false);
+        Score.SetActive(true);
+    }
+
+    public void ClearLog()
+    {
+        foreach (Transform child in playLogContainer)
+        {
+            Destroy(child.gameObject);
+        }
+        Debug.Log("Log Screen Cleared");
+    }
+
+    public void UpdatePlayLogPanel()
+    {
+        var PlayLog = GetComponent<PlayLog>();
+        var _playLog = PlayLog.ReadPLayLog();
+        foreach (var item in _playLog)
+        {
+            var line = Instantiate(playLogTextPrefab, playLogContainer);
+            line.GetComponent<TextMeshProUGUI>().text = item;
+        }
+    }
+
+
     /////////////////////////////////////
     /// NETWORK PART
     /////////////////////////////////////
@@ -152,6 +203,7 @@ public class GameManager : NetworkBehaviour
     {
         Debug.Log("Client connected: " + clientId);
 
+        if (!IsServer) return;
         // Optional: only spawn when a non-host client joins
         if (clientId != NetworkManager.Singleton.LocalClientId)
         {
@@ -165,14 +217,12 @@ public class GameManager : NetworkBehaviour
         ballObject.GetComponent<NetworkObject>().Spawn(true);
     }
 
-    public void UpdatePlayLogPanel()
+    public override void OnNetworkDespawn()
     {
-        var PlayLog = GetComponent<PlayLog>();
-        var _playLog = PlayLog.ReadPLayLog();
-        foreach (var item in _playLog)
+        if (NetworkManager.Singleton != null)
         {
-            var line = Instantiate(playLogTextPrefab, playLogContainer);
-            line.GetComponent<TextMeshProUGUI>().text = item;
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
         }
     }
+
 }

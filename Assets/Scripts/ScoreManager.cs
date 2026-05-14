@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ScoreManager : NetworkBehaviour
 {
-    
+
     public TextMeshProUGUI Score1;
     public TextMeshProUGUI Score2;
 
@@ -27,10 +27,17 @@ public class ScoreManager : NetworkBehaviour
     // OnNetworkSpawn subscribe OnScoreChange and updateUI
     public override void OnNetworkSpawn()
     {
+        Score1 = GameObject.Find("Score1").GetComponent<TextMeshProUGUI>();
+        Score2 = GameObject.Find("Score2").GetComponent<TextMeshProUGUI>();
+
         player1Score.OnValueChanged += OnScoreChanged;
         player2Score.OnValueChanged += OnScoreChanged;
 
         UpdateUI(); // important: set initial values
+
+        if (!IsServer) return;
+
+        Reset();
     }
 
     // Update UI
@@ -65,6 +72,7 @@ public class ScoreManager : NetworkBehaviour
         {
             GameManager.instance.TransferScore(player1Score.Value, player2Score.Value);
             GameManager.instance.OnPlaySessionEnded.Invoke();
+            Reset();
             return;
         }
     }
@@ -76,6 +84,7 @@ public class ScoreManager : NetworkBehaviour
         {
             GameManager.instance.TransferScore(player1Score.Value, player2Score.Value);
             GameManager.instance.OnPlaySessionEnded.Invoke();
+            Reset();
             return;
         }
     }
@@ -86,8 +95,15 @@ public class ScoreManager : NetworkBehaviour
 
         player1Score.Value = 0;
         player2Score.Value = 0;
+        UpdateUI();
     }
 
+    public override void OnNetworkDespawn()
+    {
+        player1Score.OnValueChanged -= OnScoreChanged;
+        player2Score.OnValueChanged -= OnScoreChanged;
 
+        Ball.OnGoalScored -= HandleGoal;
+    }
 
 }
