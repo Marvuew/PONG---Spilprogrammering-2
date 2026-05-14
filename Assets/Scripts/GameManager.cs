@@ -112,17 +112,6 @@ public class GameManager : MonoBehaviour
         LOBBY_UI.SetActive(true);
     }
 
-    public void UpdatePlayLogPanel()
-    {
-        var PlayLog = GetComponent<PlayLog>();
-        var _playLog = PlayLog.ReadPLayLog();
-        foreach (var item in _playLog)
-        {
-            var line = Instantiate(playLogTextPrefab, playLogContainer);
-            line.GetComponent<TextMeshProUGUI>().text = item;
-        }
-    }
-
     public void StartGame()
     {
         LOBBY_UI.SetActive(false);
@@ -170,5 +159,16 @@ public class GameManager : MonoBehaviour
             Destroy(child.gameObject);
         }
         Debug.Log("Log Screen Cleared");
+    }
+
+    public void UpdatePlayLogPanel()
+    {
+        var PlayLog = GetComponent<PlayLog>();
+        var _playLog = PlayLog.ReadPLayLog();
+        foreach (var item in _playLog)
+        {
+            var line = Instantiate(playLogTextPrefab, playLogContainer);
+            line.GetComponent<TextMeshProUGUI>().text = item;
+        }
     }
 }
