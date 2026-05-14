@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 public class GameManager : MonoBehaviour
@@ -8,6 +9,11 @@ public class GameManager : MonoBehaviour
 
     public UnityEvent OnPlaySessionEnded = new UnityEvent();
     public UnityEvent OnPlaySessionStarted = new UnityEvent();
+
+    public GameObject playLogTextPrefab;
+    public Transform playLogContainer;
+
+    public GameObject logScreen;
 
     public void Awake()
     {
@@ -106,6 +112,17 @@ public class GameManager : MonoBehaviour
         LOBBY_UI.SetActive(true);
     }
 
+    public void UpdatePlayLogPanel()
+    {
+        var PlayLog = GetComponent<PlayLog>();
+        var _playLog = PlayLog.ReadPLayLog();
+        foreach (var item in _playLog)
+        {
+            var line = Instantiate(playLogTextPrefab, playLogContainer);
+            line.GetComponent<TextMeshProUGUI>().text = item;
+        }
+    }
+
     public void StartGame()
     {
         LOBBY_UI.SetActive(false);
@@ -131,5 +148,27 @@ public class GameManager : MonoBehaviour
     void ResumeGame()
     {
         Time.timeScale = 1;
+    }
+
+    public void ToggleLogOn()
+    {
+        ClearLog();
+        logScreen.SetActive(true);
+        UpdatePlayLogPanel();
+    }
+    
+    public void ToggleLogOff()
+    {
+        ClearLog();
+        logScreen.SetActive(false);
+    }
+
+    public void ClearLog()
+    {
+        foreach (Transform child in playLogContainer)
+        {
+            Destroy(child.gameObject);
+        }
+        Debug.Log("Log Screen Cleared");
     }
 }
