@@ -99,7 +99,7 @@ public class PlayLog : MonoBehaviour
             File.AppendAllText(playLogFilePath, "=== LOG CREATED ===" + Environment.NewLine);
         }
 
-        File.AppendAllText(playLogFilePath, $"{DateTime.Now:O} - Play session {playSessionCount + 1} ended {GameManager.instance.playSessionScorePlayer1}-{GameManager.instance.playSessionScorePlayer2}. The ball was hit {GameManager.instance.ballHits} times. {Environment.NewLine}");
+        File.AppendAllText(playLogFilePath, $"{DateTime.Now:O} - Play session {playSessionCount + 1} ended {GameManager.instance.playSessionScorePlayer1}-{GameManager.instance.playSessionScorePlayer2}. The ball was hit {GameManager.instance.ballHits} times: {Environment.NewLine}");
         Debug.Log($"Wrote to: {playLogFilePath}");
     }
 
@@ -120,7 +120,7 @@ public class PlayLog : MonoBehaviour
         Debug.Log($"Wrote to: {playSessionCountFilePath}");
     }
 
-    private string ReadTextFile(string path)
+    public string ReadTextFile(string path)
     {
         if (!File.Exists(path))
         {
@@ -128,6 +128,29 @@ public class PlayLog : MonoBehaviour
         }
 
         return File.ReadAllText(path);
+    }
+
+    public string[] ReadPLayLog()
+    {
+        return ReadTextFileAsStringArray(playLogFilePath);
+    }
+
+    private string[] ReadTextFileAsStringArray(string path)
+    {
+        // Check if the log file exists before trying to read it
+        if (!File.Exists(path))
+        {
+            Debug.LogWarning("File Path does not exits");
+            return null;
+        }
+
+        // File provides some basic functions for reading and writing text files, 
+        // including reading the entire contents at once
+        // Other data formats or larger files may require more complex handling 
+        // (e.g., streaming, binary formats, etc.)
+        var text = File.ReadAllText(path);
+        var parts = text.Split('\n');
+        return parts;
     }
 }
 
