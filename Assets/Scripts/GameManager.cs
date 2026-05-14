@@ -164,4 +164,15 @@ public class GameManager : NetworkBehaviour
         GameObject ballObject = Instantiate(ball, Vector3.zero, Quaternion.identity);
         ballObject.GetComponent<NetworkObject>().Spawn(true);
     }
+
+    public void UpdatePlayLogPanel()
+    {
+        var PlayLog = GetComponent<PlayLog>();
+        var _playLog = PlayLog.ReadPLayLog();
+        foreach (var item in _playLog)
+        {
+            var line = Instantiate(playLogTextPrefab, playLogContainer);
+            line.GetComponent<TextMeshProUGUI>().text = item;
+        }
+    }
 }
